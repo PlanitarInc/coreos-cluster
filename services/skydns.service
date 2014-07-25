@@ -8,14 +8,19 @@ Requires=docker.service
 [Service]
 TimeoutStartSec=0
 ExecStartPre=/usr/bin/docker pull planitar/skydns
-ExecStart=/bin/bash -c '/usr/bin/docker rm -f discoveryd; { \
+-ExecStartPre=/usr/bin/docker rm -f skydns
+ExecStart=/bin/bash -c ' \
   DOCKER_IP=`ifconfig docker0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
-  echo $DOCKER_IP; \
-  echo /usr/bin/docker run --name discoveryd -p 127.0.0.1:53:53/udp \
+  /usr/bin/docker run --name skydns -p 127.0.0.1:53:53/udp \
     planitar/skydns -addr 0.0.0.0:53 -nameservers 8.8.8.8:53,8.8.4.4:53 \
     -machines "http://$DOCKER_IP:4001" -domain dev.plntr. -verbose; \
-  /usr/bin/docker run --name discoveryd -p 127.0.0.1:53:53/udp \
-    planitar/skydns -addr 0.0.0.0:53 -nameservers 8.8.8.8:53,8.8.4.4:53 \
-    -machines "http://$DOCKER_IP:4001" -domain dev.plntr. -verbose; \
-}'
-ExecStop=/usr/bin/docker stop discoveryd
+'
+ExecStartPost=/bin/bash -c ' \
+  DOCKER_IP=`ifconfig docker0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+  etcdctl set /skydns/plntr/dev/dns/ns "{\"host\":\"$DOCKER_IP\"}"; \
+  sudo su -c "echo nameserver 127.0.0.1 > /etc/resolv.conf~tmp"; \
+  sudo mv -b -S "~orig" /etc/resolv.conf~tmp /etc/resolv.conf; \
+'
+ExecStop=/usr/bin/docker rm -f skydns
+ExecStopPost=/bin/bash -c 'sudo mv /etc/resolv.conf~orig /etc/resolv.conf'
+Restart=always
