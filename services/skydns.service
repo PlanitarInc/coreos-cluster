@@ -1,0 +1,21 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=SkyDNS Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=/usr/bin/docker pull planitar/skydns
+ExecStart=/bin/bash -c '/usr/bin/docker rm -f discoveryd; { \
+  DOCKER_IP=`ifconfig docker0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+  echo $DOCKER_IP; \
+  echo /usr/bin/docker run --name discoveryd -p 127.0.0.1:53:53/udp \
+    planitar/skydns -addr 0.0.0.0:53 -nameservers 8.8.8.8:53,8.8.4.4:53 \
+    -machines "http://$DOCKER_IP:4001" -domain dev.plntr. -verbose; \
+  /usr/bin/docker run --name discoveryd -p 127.0.0.1:53:53/udp \
+    planitar/skydns -addr 0.0.0.0:53 -nameservers 8.8.8.8:53,8.8.4.4:53 \
+    -machines "http://$DOCKER_IP:4001" -domain dev.plntr. -verbose; \
+}'
+ExecStop=/usr/bin/docker stop discoveryd
