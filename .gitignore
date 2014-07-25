@@ -3,3 +3,5 @@ log/
 user-data
 config.rb
 discovery-url
+.config.sh
+*.swp
