@@ -34,3 +34,30 @@ coreos:
 
         [Install]
         WantedBy=sockets.target
+    - name: skydns.service
+      command: start
+      content: |
+        [Unit]
+        Description=SkyDNS Service
+        After=docker.service
+        Requires=docker.service
+        
+        [Service]
+        TimeoutStartSec=0
+        ExecStartPre=/usr/bin/docker pull planitar/skydns
+        -ExecStartPre=/usr/bin/docker rm -f skydns
+        ExecStart=/bin/bash -c ' \
+          DOCKER_IP=`ifconfig docker0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+          /usr/bin/docker run --name skydns -p 127.0.0.1:53:53/udp \
+            planitar/skydns -addr 0.0.0.0:53 -nameservers 8.8.8.8:53,8.8.4.4:53 \
+            -machines "http://$DOCKER_IP:4001" -domain dev.plntr. -verbose; \
+        '
+        ExecStartPost=/bin/bash -c ' \
+          DOCKER_IP=`ifconfig docker0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+          etcdctl set /skydns/plntr/dev/dns/ns "{\"host\":\"$DOCKER_IP\"}"; \
+          sudo su -c "echo nameserver 127.0.0.1 > /etc/resolv.conf~tmp"; \
+          sudo mv -b -S "~orig" /etc/resolv.conf~tmp /etc/resolv.conf; \
+        '
+        ExecStop=/usr/bin/docker rm -f skydns
+        ExecStopPost=/bin/bash -c 'sudo mv /etc/resolv.conf~orig /etc/resolv.conf'
+        Restart=always
