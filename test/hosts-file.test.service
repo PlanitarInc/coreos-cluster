@@ -1,0 +1,16 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Verify that coreos has configured /etc/hosts
+Requires=docker.service
+After=docker.service
+
+[Service]
+TimeoutStartSec=20
+Restart=no
+Type=oneshot
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+  test -f /etc/hosts; \
+  grep -q "^127.0.0.1 core-01$" /etc/hosts; \
+'
