@@ -1,0 +1,18 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Dev Service
+After=etcd.service
+Requires=etcd.service
+
+[Service]
+TimeoutStartSec=10s
+Restart=no
+Type=oneshot
+ExecStart=/bin/bash -c ' \
+  etcdctl set /dev/H "%H"; \
+  etcdctl set /dev/m "%m"; \
+  etcdctl set /dev/n "%n"; \
+  etcdctl set /dev/p "%p"; \
+  etcdctl set /dev/i "%i"; \
+'
