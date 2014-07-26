@@ -1,0 +1,15 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Failed test sample
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=100
+Restart=no
+Type=oneshot
+ExecStartPre=/bin/bash -c ' \
+  set -ex; \
+  false; \
+'
+ExecStart=/usr/bin/sleep 1d

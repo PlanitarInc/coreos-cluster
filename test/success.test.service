@@ -1,0 +1,14 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Successful test sample
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=100
+Restart=no
+Type=oneshot
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+  true; \
+'
