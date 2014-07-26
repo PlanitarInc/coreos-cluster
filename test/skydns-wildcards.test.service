@@ -1,0 +1,48 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Verify skydns resolves services registered in etcd
+Requires=docker.service
+After=skydns.service
+Requires=skydns.service
+
+[Service]
+TimeoutStartSec=2m
+Restart=no
+Type=oneshot
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+\
+  etcdctl set /skydns/plntr/dev/a/01 \
+    "{ \\"host\\": \\"ya.ru\\", \\"port\\": 80, \\"priority\\": 10 }"; \
+  etcdctl set /skydns/plntr/dev/a/02 \
+    "{ \\"host\\": \\"01.b.dev.plntr\\", \\"port\\": 80, \\"priority\\": 10 }"; \
+  etcdctl set /skydns/plntr/dev/b/01 \
+    "{ \\"host\\": \\"127.0.0.1\\", \\"port\\": 53, \\"priority\\": 10 }"; \
+\
+  echo All \\"a\\" hosts are CNAMES\\; according to documentation they should be \
+    resolved in a recursive query, but in practice it does not happen; \
+  ping -c3 a && echo "Could ping \\"a\\"!!" && exit 1 || true; \
+  ping -c3 01.a; \
+  ping -c3 01.a.dev.plntr; \
+  ping -c3 02.a; \
+  ping -c3 02.a.dev.plntr; \
+  ping -c3 b; \
+  ping -c3 b.dev.plntr; \
+  ping -c3 01.b; \
+  ping -c3 01.b.dev.plntr; \
+\
+  etcdctl set /skydns/plntr/dev/a/03 \
+    "{ \\"host\\": \\"127.0.0.1\\", \\"port\\": 81, \\"priority\\": 13 }"; \
+  echo Now there is A entry among \\"a\\" hosts, so \\"a\\" is resolved; \
+  ping -c3 a; \
+  ping -c3 a.dev.plntr; \
+  ping -c3 03.a; \
+  ping -c3 03.a.dev.plntr; \
+'
+ExecStop=/bin/bash -c ' \
+  etcdctl rm /skydns/plntr/dev/a/01; \
+  etcdctl rm /skydns/plntr/dev/a/02; \
+  etcdctl rm /skydns/plntr/dev/a/03; \
+  etcdctl rm /skydns/plntr/dev/b/01; \
+'

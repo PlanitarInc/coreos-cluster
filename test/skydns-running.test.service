@@ -1,0 +1,16 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Verify that skydns service is running
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=3m
+Restart=no
+Type=oneshot
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+  until ps aux | grep -v grep | grep -w docker | grep -q -- "--name skydns "; do \
+    sleep 7s; \
+  done; \
+'

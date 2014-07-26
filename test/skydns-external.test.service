@@ -1,0 +1,17 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Verify that skydns resoves external hosts
+Requires=docker.service
+After=skydns.service
+Requires=skydns.service
+
+[Service]
+TimeoutStartSec=1m
+Restart=no
+Type=oneshot
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+  ping -c3 "ya.ru"; \
+  ping -c3 "127.0.0.1"; \
+'

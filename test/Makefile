@@ -1,6 +1,6 @@
-.PHONY: test test-sanity
+.PHONY: test test-sanity test-skydns
 
-test: test-sanity
+test: test-sanity test-skydns
 
 test-sanity:
 	  ../script/run-test.sh success.test.service
@@ -16,3 +16,8 @@ test-sanity:
 	! ../script/run-test.sh timeout.test.service failure
 	  ../script/run-test.sh timeout.test.service timeout
 
+test-skydns: test-sanity
+	../script/run-test.sh skydns-running.test.service
+	../script/run-test.sh skydns-resolvconf.test.service
+	../script/run-test.sh skydns-external.test.service
+	../script/run-test.sh skydns-wildcards.test.service
