@@ -41,7 +41,8 @@ config: .config.sh
 	echo 'export FLEETCTL_HOST_FILE=${FLEETCTL_HOST_FILE}' >> $@
 
 discovery-url:
-	curl -s https://discovery.etcd.io/new > $@
+	curl -s https://discovery.etcd.io/new > $@ || \
+	  { rm $@ && false; }
 
 user-data: user-data.sample discovery-url
 	sed $< >$@ \
