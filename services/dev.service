@@ -11,8 +11,11 @@ Restart=no
 Type=oneshot
 ExecStart=/bin/bash -c ' \
   etcdctl set /dev/H "%H"; \
+  etcdctl set /dev/h "%h"; \
   etcdctl set /dev/m "%m"; \
+  etcdctl set /dev/N "%N"; \
   etcdctl set /dev/n "%n"; \
+  etcdctl set /dev/P "%P"; \
   etcdctl set /dev/p "%p"; \
   etcdctl set /dev/i "%i"; \
 '
