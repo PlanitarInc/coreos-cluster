@@ -19,7 +19,7 @@ ExecStart=/bin/bash -c ' \
   \
   echo "Point riemann-01.%H.riemann.dev.plntr to localhost, " \
     "that means riemann.dev.plnrt points to localhost as well."; \
-  etcdctl set /skydns/plntr/dev/riemann/%H/riemann-01 \
+  etcdctl set /skydns/plntr/dev/riemann/%H \
     "{ \\"host\\": \\"127.0.0.1\\" }"; \
   \
   echo "Wait for monitord to send metrics to riemann server..."; \
@@ -30,5 +30,5 @@ ExecStart=/bin/bash -c ' \
 '
 ExecStop=/bin/bash -c ' \
   docker rm -f riemann-listener; \
-  etcdctl rm /skydns/plntr/dev/riemann/%H/riemann-01; \
+  etcdctl rm /skydns/plntr/dev/riemann/%H; \
 '
