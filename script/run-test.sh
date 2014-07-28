@@ -26,7 +26,7 @@ res=`fleet-wait.sh "$unit_name"`
 
 if [ "$res" != "$expected_result" ]; then
     echo "  : got = $res, expected = $expected_result"
-    fleetctl journal "$unit_name" | sed 's/^/  : /'
+    fleetctl journal --lines 50 "$unit_name" | sed 's/^/  : /'
 fi
 
 fleetctl destroy "$unit_name"
