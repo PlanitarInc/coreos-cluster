@@ -24,10 +24,12 @@ fleetctl start "$unit_path"
 
 res=`fleet-wait.sh "$unit_name"`
 
-echo $res "::" $expected_result
-
-[ "$res" != "$expected_result" ] && fleetctl journal "$unit_name"
+if [ "$res" != "$expected_result" ]; then
+    echo "  : got = $res, expected = $expected_result"
+    fleetctl journal "$unit_name" | sed 's/^/  : /'
+fi
 
 fleetctl destroy "$unit_name"
+echo ' '
 
 test "$res" == "$expected_result"
