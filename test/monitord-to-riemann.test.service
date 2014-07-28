@@ -1,0 +1,34 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Verify that monitord is reporting to Rieman
+Requires=docker.service
+Requires=skydns.service
+Requires=monitord.service
+After=skydns.service
+After=monitord.service
+
+[Service]
+TimeoutStartSec=3m
+Restart=no
+Type=oneshot
+ExecStartPre=/usr/bin/docker pull planitar/dev-base
+ExecStartPre=-/usr/bin/docker rm -f riemann-listener
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+  \
+  echo "Point riemann-01.core-01.riemann.dev.plntr to localhost, " \
+    "that means riemann.dev.plnrt points to localhost as well."; \
+  etcdctl set /skydns/plntr/dev/riemann/core-01/riemann-01 \
+    "{ \\"host\\": \\"127.0.0.1\\" }"; \
+  \
+  echo "Wait for monitord to send metrics to riemann server..."; \
+  docker run -i --name riemann-listener --net host planitar/dev-base \
+    /bin/bash -c "nc -lu 127.0.0.1 5555 | head -n 10"; \
+  docker logs riemann-listener; \
+  echo "OK"; \
+'
+ExecStop=/bin/bash -c ' \
+  docker rm -f riemann-listener; \
+  etcdctl rm /skydns/plntr/dev/riemann/core-01/riemann-01; \
+'

@@ -1,0 +1,21 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Monitoring Service
+Requires=docker.service
+Requires=skydns.service
+After=skydns.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=/usr/bin/docker pull planitar/monitord
+ExecStartPre=-/usr/bin/docker rm -f monitord
+ExecStart=/bin/bash -c ' \
+  /usr/bin/docker run --net host --name monitord planitar/monitord; \
+'
+ExecStartPost=/bin/bash -c ' \
+  DOCKER_IP=`ifconfig docker0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+  etcdctl set /skydns/plntr/dev/monitord/%h "{ \\"host\\": \\"$DOCKER_IP\\" }"; \
+'
+ExecStop=/usr/bin/docker rm -f monitord
+Restart=always

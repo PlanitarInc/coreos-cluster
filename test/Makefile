@@ -1,6 +1,6 @@
-.PHONY: test test-sanity test-general test-skydns
+.PHONY: test test-sanity test-general test-skydns test-monitord
 
-test: test-sanity test-general test-skydns
+test: test-sanity test-general test-skydns test-monitord
 
 test-sanity:
 	  ../script/run-test.sh success.test.service
@@ -24,3 +24,9 @@ test-skydns: test-sanity
 	../script/run-test.sh skydns-resolvconf.test.service
 	../script/run-test.sh skydns-external.test.service
 	../script/run-test.sh skydns-wildcards.test.service
+
+test-monitord: 
+	@# test-sanity test-skydns
+	fleetctl start ../services/monitord.service
+	../script/run-test.sh monitord-running.test.service
+	../script/run-test.sh monitord-to-riemann.test.service
