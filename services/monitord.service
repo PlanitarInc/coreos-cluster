@@ -15,7 +15,7 @@ ExecStart=/bin/bash -c ' \
 '
 ExecStartPost=/bin/bash -c ' \
   DOCKER_IP=`ifconfig docker0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
-  etcdctl set /skydns/plntr/dev/monitord/%h "{ \\"host\\": \\"$DOCKER_IP\\" }"; \
+  etcdctl set /skydns/plntr/dev/monitord/%H "{ \\"host\\": \\"$DOCKER_IP\\" }"; \
 '
 ExecStop=/usr/bin/docker rm -f monitord
 Restart=always
