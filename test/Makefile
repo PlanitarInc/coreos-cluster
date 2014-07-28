@@ -27,6 +27,5 @@ test-skydns: test-sanity
 
 test-monitord: 
 	@# test-sanity test-skydns
-	fleetctl start ../services/monitord.service
 	../script/run-test.sh monitord-running.test.service
 	../script/run-test.sh monitord-to-riemann.test.service
