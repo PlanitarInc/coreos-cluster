@@ -45,7 +45,7 @@ coreos:
         [Service]
         TimeoutStartSec=0
         ExecStartPre=/usr/bin/docker pull planitar/skydns
-        -ExecStartPre=/usr/bin/docker rm -f skydns
+        ExecStartPre=-/usr/bin/docker rm -f skydns
         ExecStart=/bin/bash -c ' \
           DOCKER_IP=`ifconfig docker0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
           /usr/bin/docker run --name skydns -p 127.0.0.1:53:53/udp \
