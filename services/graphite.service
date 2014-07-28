@@ -1,0 +1,44 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Graphite Service
+Requires=docker.service
+Requires=skydns.service
+After=skydns.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=/usr/bin/docker pull planitar/graphite
+ExecStartPre=-/bin/bash -c ' \
+  /usr/bin/docker stop graphite; \
+  /usr/bin/docker rm graphite; \
+'
+ExecStart=/bin/bash -c ' \
+  PUBLIC_IP=`ifconfig eth0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+  /usr/bin/docker run --name graphite \
+    -p $PUBLIC_IP:2003:2003 \
+    -p $PUBLIC_IP:2004:2004 \
+    -p $PUBLIC_IP::80 \
+    -p $PUBLIC_IP::81 \
+    planitar/graphite; \
+'
+ExecStartPost=/bin/bash -c ' \
+  sleep 2s; \
+  PUBLIC_IP=`ifconfig eth0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+  GRAFANA_PORT=`docker port graphite 80 | sed "s/^.*://"`; \
+  GRAPHITE_PORT=`docker port graphite 81 | sed "s/^.*://"`; \
+  etcdctl set /skydns/plntr/dev/grafana/%H \
+    "{ \\"host\\": \\"$PUBLIC_IP\\", \\"port\\": $GRAFANA_PORT }"; \
+  etcdctl set /skydns/plntr/dev/graphite/%H \
+    "{ \\"host\\": \\"$PUBLIC_IP\\", \\"port\\": $GRAPHITE_PORT }"; \
+'
+ExecStop=-/bin/bash -c ' \
+  /usr/bin/docker stop graphite; \
+  /usr/bin/docker rm graphite; \
+'
+ExecStopPost=/bin/bash -c ' \
+  etcdctl rm /skydns/plntr/dev/grafana/%H; \
+  etcdctl rm /skydns/plntr/dev/graphite/%H; \
+'
+Restart=always
+RestartSec=15s

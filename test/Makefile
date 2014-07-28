@@ -30,3 +30,10 @@ test-monitord:
 	../script/run-test.sh monitord-running.test.service
 	../script/run-test.sh monitord-to-riemann.test.service
 	../script/run-test.sh monitord-resolved.test.service
+
+test-graphite:
+	@# test-sanity test-skydns
+	fleetctl start ../services/graphite.service
+	../script/run-test.sh graphite-running.test.service
+	../script/run-test.sh graphite-available.test.service
+	../script/run-test.sh grafana-available.test.service

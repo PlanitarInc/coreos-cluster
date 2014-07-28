@@ -1,0 +1,23 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Verify that grafana web interface is available
+Requires=docker.service
+Requires=graphite.service
+After=graphite.service
+
+[Service]
+TimeoutStartSec=30
+Restart=no
+Type=oneshot
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+  PUBLIC_IP=`ifconfig eth0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+  ping -c3 %H.grafana.dev.plntr | grep $PUBLIC_IP; \
+  ping -c3 grafana.dev.plntr | grep $PUBLIC_IP; \
+  echo "XXX intead of running SRV query, we run A query and extract the port " \
+       "manually from etcd"; \
+  PORT=`etcdctl get /skydns/plntr/dev/grafana/%H | \
+    sed "s/^.*\<port\>[^0-9]*\([0-9]*\).*$/\1/"`; \
+  curl -sv http://grafana.dev.plntr:$PORT | grep -q "<title>Grafana</title>"; \
+'
