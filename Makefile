@@ -2,7 +2,7 @@ NINSTANCES=3
 FLEETCTL_TUNNEL=172.17.8.101
 FLEETCTL_HOST_FILE=~/.fleetctl/known_hosts
 
-.PHONY: all run config stop clean
+.PHONY: all run config stop clean test
 
 all: run
 
@@ -56,3 +56,8 @@ config.rb:
 	echo '$$vb_gui=false' >> $@
 	echo '$$vb_memory=512' >> $@
 	echo '$$vb_cpus=1' >> $@
+
+test:
+	make -C . clean
+	make -C . run NINSTANCES=1
+	make -C test test
