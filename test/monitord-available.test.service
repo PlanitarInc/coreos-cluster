@@ -13,6 +13,6 @@ Type=oneshot
 ExecStart=/bin/bash -c ' \
   set -ex; \
   DOCKER_IP=`ifconfig docker0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
-  ping -c3 %H.monitrod.dev.plntr | grep $DOCKER_IP; \
+  ping -c3 %H.monitord.dev.plntr | grep $DOCKER_IP; \
   ping -c3 monitord.dev.plntr | grep $DOCKER_IP; \
 '
