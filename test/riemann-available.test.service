@@ -1,0 +1,19 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Verify that riemann web interface is available
+Requires=docker.service
+Requires=riemann.service
+After=riemann.service
+
+[Service]
+TimeoutStartSec=30
+Restart=no
+Type=oneshot
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+  PUBLIC_IP=`ifconfig eth0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+  ping -c3 %H.riemann.dev.plntr | grep $PUBLIC_IP; \
+  ping -c3 riemann.dev.plntr | grep $PUBLIC_IP; \
+  curl -sv http://riemann.dev.plntr:4567/ | grep -q "<title>riemann</title>"; \
+'

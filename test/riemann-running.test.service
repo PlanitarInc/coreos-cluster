@@ -1,0 +1,19 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Verify that rieman service is running
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=3m
+Restart=no
+Type=oneshot
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+  until ps aux | grep -v grep | grep -w docker | grep -q -- "--name riemann\>"; do \
+    sleep 7s; \
+  done; \
+'
+
+[X-Fleet]
+X-ConditionMachineOf=riemann.service

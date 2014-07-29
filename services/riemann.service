@@ -1,0 +1,41 @@
+# vim: ft=systemd :
+
+[Unit]
+Description=Riemann Service
+Requires=docker.service
+Requires=skydns.service
+After=skydns.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=/usr/bin/docker pull planitar/riemann
+ExecStartPre=-/bin/bash -c ' \
+  set -ex; \
+  /usr/bin/docker stop riemann; \
+  /usr/bin/docker rm riemann; \
+'
+ExecStart=/bin/bash -c ' \
+  set -ex; \
+  PUBLIC_IP=`ifconfig eth0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+  /usr/bin/docker run --name riemann \
+    -p $PUBLIC_IP:5555:5555 \
+    -p $PUBLIC_IP:5556:5556 \
+    -p $PUBLIC_IP:4567:4567 \
+    planitar/riemann; \
+'
+ExecStartPost=/bin/bash -c ' \
+  set -ex; \
+  PUBLIC_IP=`ifconfig eth0 | sed -n "s/^ *inet \([0-9.]*\) .*$/\1/p"`; \
+  etcdctl set /skydns/plntr/dev/riemann/%H "{ \\"host\\": \\"$PUBLIC_IP\\" }"; \
+'
+ExecStop=-/bin/bash -c ' \
+  set -ex; \
+  /usr/bin/docker stop riemann; \
+  /usr/bin/docker rm riemann; \
+'
+ExecStopPost=/bin/bash -c ' \
+  set -ex; \
+  etcdctl rm /skydns/plntr/dev/riemann/%H; \
+'
+Restart=always
+RestartSec=30s
