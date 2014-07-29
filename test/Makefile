@@ -29,7 +29,7 @@ test-monitord:
 	@# test-sanity test-skydns
 	../script/run-test.sh monitord-running.test.service
 	../script/run-test.sh monitord-to-riemann.test.service
-	../script/run-test.sh monitord-resolved.test.service
+	../script/run-test.sh monitord-available.test.service
 
 test-graphite:
 	@# test-sanity test-skydns
