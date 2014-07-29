@@ -1,6 +1,6 @@
-.PHONY: test test-sanity test-general test-skydns test-monitord
+.PHONY: test test-sanity test-general test-skydns test-monitord test-graphite
 
-test: test-sanity test-general test-skydns test-monitord
+test: test-sanity test-general test-skydns test-monitord test-graphite
 
 test-sanity:
 	  ../script/run-test.sh success.test.service
